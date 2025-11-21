@@ -44,7 +44,7 @@ export default {
     goTo(page) {
       switch (page) {
         case 'scanner':
-          this.$router.push('/scanner')
+          this.$router.push('/scan-verify')
           break
         case 'markBought':
           this.$router.push('/mark-bought')
