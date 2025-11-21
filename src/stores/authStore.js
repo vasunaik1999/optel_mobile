@@ -6,7 +6,7 @@ export const useAuthStore = defineStore('authStore', {
     user: null,
     token: null,
     isAuthenticated: false,
-    baseUrl: LocalStorage.getItem('baseUrl') || 'http://192.168.1.9:3000',
+    baseUrl: LocalStorage.getItem('baseUrl') || 'http://192.168.31.73:3000',
     apiKey: LocalStorage.getItem('apiKey') || '',
   }),
   getters: {

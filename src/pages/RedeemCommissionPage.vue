@@ -131,29 +131,56 @@ export default {
 
     async requestGeolocation() {
       try {
-        // Request permission first
-        const permission = await Geolocation.requestPermissions()
-        if (permission.location === 'denied') {
-          console.warn('Geolocation permission denied')
-          this.setDummyWeather()
-          return
+        console.log('Checking permissions...')
+
+        // 1. Check permissions
+        let perm = await Geolocation.checkPermissions()
+
+        if (perm.location !== 'granted') {
+          console.log('Requesting permissions...')
+
+          await Geolocation.requestPermissions()
+
+          perm = await Geolocation.checkPermissions()
+
+          if (perm.location !== 'granted') {
+            console.warn('Permission denied, using defaults')
+            this.setDummyWeather()
+            return
+          }
         }
 
-        // Now get the position
-        const position = await Geolocation.getCurrentPosition()
-        const { latitude, longitude } = position.coords
-        console.log('User location:', latitude, longitude)
+        console.log('Getting location...')
 
-        // Fetch weather with these coordinates
+        // 2. Try get location
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 8000,
+          maximumAge: 0,
+        })
+
+        const { latitude, longitude } = position.coords
+        console.log('Location:', latitude, longitude)
+
         this.fetchWeatherFromAPI(latitude, longitude)
       } catch (err) {
-        console.warn('Geolocation failed, using defaults', err)
+        console.error('Geolocation failed:', err)
+
+        // GPS OFF case (Android)
+        if (String(err).includes('not enabled')) {
+          this.$q.notify({
+            type: 'warning',
+            message: 'Please enable GPS / Location on your phone',
+          })
+        }
+
         this.setDummyWeather()
       }
     },
 
     // Set dummy weather if geolocation fails
     setDummyWeather() {
+      console.log('SET DUMMY WEATHER CALLED')
       this.weatherCondition = 'Clear'
       this.humidity = 50
       this.updateButtonStyle()
@@ -165,6 +192,7 @@ export default {
         const res = await axios.get(
           `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${this.weatherApiKey}`,
         )
+        console.log('FETCH WEATHER RESPONSE:', res)
         const data = res.data
         this.weatherCondition = data.weather[0].main // Clear, Rain, Clouds etc.
         this.humidity = data.main.humidity
