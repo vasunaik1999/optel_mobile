@@ -30,6 +30,8 @@
 import { useAuthStore } from 'src/stores/authStore'
 import axios from 'axios'
 
+const authStore = useAuthStore()
+
 export default {
   name: 'LoginPage',
   data() {
@@ -37,6 +39,7 @@ export default {
       userId: '',
       password: '',
       loading: false,
+      authStore,
     }
   },
   methods: {
@@ -50,17 +53,16 @@ export default {
       }
 
       this.loading = true
-      const baseUrl = 'http://192.168.1.9:3000' // replace with your PC IP or emulator 10.0.2.2
+      // const baseUrl = 'http://192.168.1.9:3000' // replace with your PC IP or emulator 10.0.2.2
 
       try {
-        const res = await axios.post(`${baseUrl}/verify/login`, {
+        const res = await axios.post(`${this.authStore.baseUrl}/verify/login`, {
           userId: this.userId,
           password: this.password,
         })
 
         if (res.data.success) {
-          const auth = useAuthStore()
-          auth.login(res.data.user, res.data.token)
+          this.authStore.login(res.data.user, res.data.token)
           this.$q.notify({
             type: 'positive',
             message: `Welcome, ${res.data.user.name}!`,
