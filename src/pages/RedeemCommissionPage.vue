@@ -23,8 +23,9 @@
           @click="handleRedeem"
         />
 
-        {{ weatherCondition }}
-        {{ humidity }}%
+        <div class="q-mt-md">
+          <strong>Weather:</strong> {{ weatherCondition }}, Humidity: {{ humidity }}%
+        </div>
 
         <q-banner
           v-if="message"
@@ -40,6 +41,7 @@
 </template>
 
 <script>
+import { Geolocation } from '@capacitor/geolocation'
 import { useAuthStore } from 'src/stores/authStore'
 import axios from 'axios'
 
@@ -61,9 +63,7 @@ export default {
     }
   },
   methods: {
-    // --------------------------
     // Fetch Pending Commission
-    // --------------------------
     async fetchPending() {
       try {
         const res = await axios.get(
@@ -79,9 +79,7 @@ export default {
       }
     },
 
-    // --------------------------
     // Redeem Commission
-    // --------------------------
     async handleRedeem() {
       if (!this.pointsToRedeem || this.pointsToRedeem <= 0) {
         this.$q.notify({ type: 'negative', message: 'Enter valid points to redeem' })
@@ -120,68 +118,71 @@ export default {
       }
     },
 
-    // --------------------------
     // Update Redeem Button Style
-    // --------------------------
     updateButtonStyle() {
-      if (this.weatherCondition === 'Sunny' && this.humidity < 60) {
+      if (this.weatherCondition === 'Clear' && this.humidity < 60) {
         this.redeemButtonClass = 'shimmer-gold'
-      } else if (this.weatherCondition === 'Rainy' || this.humidity > 80) {
+      } else if (this.weatherCondition === 'Rain' || this.humidity > 80) {
         this.redeemButtonClass = 'pulse-grey'
       } else {
         this.redeemButtonClass = 'static-purple'
       }
     },
 
-    // --------------------------
-    // Fetch Weather
-    // --------------------------
-    async fetchWeather() {
-      if (!navigator.geolocation) {
-        console.warn('Geolocation not supported. Using default values.')
-        this.weatherCondition = 'Sunny'
-        this.humidity = 50
-        this.updateButtonStyle()
-        return
+    async requestGeolocation() {
+      try {
+        // Request permission first
+        const permission = await Geolocation.requestPermissions()
+        if (permission.location === 'denied') {
+          console.warn('Geolocation permission denied')
+          this.setDummyWeather()
+          return
+        }
+
+        // Now get the position
+        const position = await Geolocation.getCurrentPosition()
+        const { latitude, longitude } = position.coords
+        console.log('User location:', latitude, longitude)
+
+        // Fetch weather with these coordinates
+        this.fetchWeatherFromAPI(latitude, longitude)
+      } catch (err) {
+        console.warn('Geolocation failed, using defaults', err)
+        this.setDummyWeather()
       }
+    },
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position.coords.latitude
-          const lon = position.coords.longitude
+    // Set dummy weather if geolocation fails
+    setDummyWeather() {
+      this.weatherCondition = 'Clear'
+      this.humidity = 50
+      this.updateButtonStyle()
+    },
 
-          try {
-            const res = await axios.get(
-              `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${this.weatherApiKey}`,
-            )
-
-            console.log('Weather data:', res.data)
-            const weather = res.data.weather[0].main // e.g., 'Rain', 'Clear', 'Clouds'
-            this.weatherCondition = weather === 'Clear' ? 'Sunny' : weather
-            this.humidity = res.data.main.humidity
-            this.updateButtonStyle()
-          } catch (err) {
-            console.warn('Weather fetch failed, using defaults.', err)
-            this.weatherCondition = 'Sunny'
-            this.humidity = 50
-            this.updateButtonStyle()
-          }
-        },
-        (err) => {
-          console.warn('Geolocation denied, using defaults.', err)
-          this.weatherCondition = 'Sunny'
-          this.humidity = 50
-          this.updateButtonStyle()
-        },
-      )
+    // Fetch weather from OpenWeatherMap API
+    async fetchWeatherFromAPI(lat, lon) {
+      try {
+        const res = await axios.get(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${this.weatherApiKey}`,
+        )
+        const data = res.data
+        this.weatherCondition = data.weather[0].main // Clear, Rain, Clouds etc.
+        this.humidity = data.main.humidity
+        this.updateButtonStyle()
+      } catch (err) {
+        console.warn('Weather API failed, using defaults', err)
+        this.setDummyWeather()
+      }
     },
   },
+
   mounted() {
     this.fetchPending()
-    this.fetchWeather()
-    // Refresh weather every 15 sec
-    this.intervalId = setInterval(this.fetchWeather, 15000)
+    this.requestGeolocation()
+    // Refresh every 15 seconds
+    this.intervalId = setInterval(this.requestGeolocation, 15000)
   },
+
   beforeUnmount() {
     clearInterval(this.intervalId)
   },
@@ -193,9 +194,7 @@ export default {
   height: 100%;
 }
 
-/* -------------------- */
 /* Button Animations */
-/* -------------------- */
 .shimmer-gold {
   background: linear-gradient(90deg, #ffd700 0%, #fffacd 50%, #ffd700 100%);
   background-size: 200% 100%;

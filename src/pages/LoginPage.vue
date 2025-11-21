@@ -36,8 +36,8 @@ export default {
   name: 'LoginPage',
   data() {
     return {
-      userId: '',
-      password: '',
+      userId: '7',
+      password: 'password',
       loading: false,
       authStore,
     }
