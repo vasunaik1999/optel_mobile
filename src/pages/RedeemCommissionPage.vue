@@ -15,12 +15,16 @@
         />
 
         <q-btn
+          :class="redeemButtonClass"
           label="Redeem"
           color="primary"
           class="q-mt-md"
           :loading="loading"
           @click="handleRedeem"
         />
+
+        {{ weatherCondition }}
+        {{ humidity }}%
 
         <q-banner
           v-if="message"
@@ -49,9 +53,17 @@ export default {
       success: false,
       loading: false,
       authStore: useAuthStore(),
+      weatherCondition: 'Sunny', // dummy default for demo
+      humidity: 50, // dummy default for demo
+      redeemButtonClass: '',
+      intervalId: null,
+      weatherApiKey: 'ab84ab2a5ad5a0c1f09c72a400a2d3a2', // replace with your key
     }
   },
   methods: {
+    // --------------------------
+    // Fetch Pending Commission
+    // --------------------------
     async fetchPending() {
       try {
         const res = await axios.get(
@@ -66,6 +78,10 @@ export default {
         })
       }
     },
+
+    // --------------------------
+    // Redeem Commission
+    // --------------------------
     async handleRedeem() {
       if (!this.pointsToRedeem || this.pointsToRedeem <= 0) {
         this.$q.notify({ type: 'negative', message: 'Enter valid points to redeem' })
@@ -103,9 +119,71 @@ export default {
         this.loading = false
       }
     },
+
+    // --------------------------
+    // Update Redeem Button Style
+    // --------------------------
+    updateButtonStyle() {
+      if (this.weatherCondition === 'Sunny' && this.humidity < 60) {
+        this.redeemButtonClass = 'shimmer-gold'
+      } else if (this.weatherCondition === 'Rainy' || this.humidity > 80) {
+        this.redeemButtonClass = 'pulse-grey'
+      } else {
+        this.redeemButtonClass = 'static-purple'
+      }
+    },
+
+    // --------------------------
+    // Fetch Weather
+    // --------------------------
+    async fetchWeather() {
+      if (!navigator.geolocation) {
+        console.warn('Geolocation not supported. Using default values.')
+        this.weatherCondition = 'Sunny'
+        this.humidity = 50
+        this.updateButtonStyle()
+        return
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude
+          const lon = position.coords.longitude
+
+          try {
+            const res = await axios.get(
+              `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${this.weatherApiKey}`,
+            )
+
+            console.log('Weather data:', res.data)
+            const weather = res.data.weather[0].main // e.g., 'Rain', 'Clear', 'Clouds'
+            this.weatherCondition = weather === 'Clear' ? 'Sunny' : weather
+            this.humidity = res.data.main.humidity
+            this.updateButtonStyle()
+          } catch (err) {
+            console.warn('Weather fetch failed, using defaults.', err)
+            this.weatherCondition = 'Sunny'
+            this.humidity = 50
+            this.updateButtonStyle()
+          }
+        },
+        (err) => {
+          console.warn('Geolocation denied, using defaults.', err)
+          this.weatherCondition = 'Sunny'
+          this.humidity = 50
+          this.updateButtonStyle()
+        },
+      )
+    },
   },
   mounted() {
     this.fetchPending()
+    this.fetchWeather()
+    // Refresh weather every 15 sec
+    this.intervalId = setInterval(this.fetchWeather, 15000)
+  },
+  beforeUnmount() {
+    clearInterval(this.intervalId)
   },
 }
 </script>
@@ -113,5 +191,45 @@ export default {
 <style scoped>
 .q-page {
   height: 100%;
+}
+
+/* -------------------- */
+/* Button Animations */
+/* -------------------- */
+.shimmer-gold {
+  background: linear-gradient(90deg, #ffd700 0%, #fffacd 50%, #ffd700 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1s infinite linear;
+  color: black !important;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.pulse-grey {
+  background-color: #555 !important;
+  animation: pulse 2s infinite;
+  color: white !important;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.static-purple {
+  background-color: #8a2be2 !important;
+  color: white !important;
 }
 </style>
