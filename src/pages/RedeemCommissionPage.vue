@@ -24,7 +24,12 @@
         />
 
         <div class="q-mt-md">
-          <strong>Weather:</strong> {{ weatherCondition }}, Humidity: {{ humidity }}%
+          <strong>Weather:</strong>
+          {{ weatherCondition }} ({{ isRealWeather ? 'Real' : 'Dummy' }}), Humidity: {{ humidity }}%
+
+          <div v-if="isRealWeather">🌍 Lat: {{ lat }} | Lon: {{ lon }}</div>
+
+          <div v-else>🧪 Using test weather</div>
         </div>
 
         <q-banner
@@ -60,6 +65,9 @@ export default {
       redeemButtonClass: '',
       intervalId: null,
       weatherApiKey: 'ab84ab2a5ad5a0c1f09c72a400a2d3a2', // replace with your key
+      isRealWeather: false,
+      lat: null,
+      lon: null,
     }
   },
   methods: {
@@ -181,8 +189,17 @@ export default {
     // Set dummy weather if geolocation fails
     setDummyWeather() {
       console.log('SET DUMMY WEATHER CALLED')
-      this.weatherCondition = 'Clear'
-      this.humidity = 50
+
+      const conditions = ['Clear', 'Rain', 'Clouds', 'Fog', 'Storm', 'Sunny']
+      const randomCond = conditions[Math.floor(Math.random() * conditions.length)]
+      const randomHumidity = Math.floor(Math.random() * 60) + 30 // 30–90%
+
+      this.weatherCondition = randomCond
+      this.humidity = randomHumidity
+      this.lat = null
+      this.lon = null
+      this.isRealWeather = false
+
       this.updateButtonStyle()
     },
 
@@ -196,6 +213,9 @@ export default {
         const data = res.data
         this.weatherCondition = data.weather[0].main // Clear, Rain, Clouds etc.
         this.humidity = data.main.humidity
+        this.isRealWeather = true
+        this.lat = lat
+        this.lon = lon
         this.updateButtonStyle()
       } catch (err) {
         console.warn('Weather API failed, using defaults', err)
