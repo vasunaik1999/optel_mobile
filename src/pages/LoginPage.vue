@@ -22,58 +22,65 @@
           :loading="loading"
         />
       </q-card-section>
-      <q-banner v-if="error" class="q-mt-md" color="red-4" text-color="white">{{ error }}</q-banner>
     </q-card>
   </q-page>
 </template>
 
 <script>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/authStore'
 import axios from 'axios'
 
 export default {
   name: 'LoginPage',
-  setup() {
-    const userId = ref('')
-    const password = ref('')
-    const error = ref('')
-    const loading = ref(false)
-    const router = useRouter()
-    const auth = useAuthStore()
-
-    const handleLogin = async () => {
-      error.value = ''
-      if (!userId.value || !password.value) {
-        error.value = 'User ID and password are required'
+  data() {
+    return {
+      userId: '',
+      password: '',
+      loading: false,
+    }
+  },
+  methods: {
+    async handleLogin() {
+      if (!this.userId || !this.password) {
+        this.$q.notify({
+          type: 'negative',
+          message: 'User ID and password are required',
+        })
         return
       }
 
-      loading.value = true
-      const baseUrl = 'http://192.168.1.9:3000'
+      this.loading = true
+      const baseUrl = 'http://192.168.1.9:3000' // replace with your PC IP or emulator 10.0.2.2
 
       try {
         const res = await axios.post(`${baseUrl}/verify/login`, {
-          userId: userId.value,
-          password: password.value,
+          userId: this.userId,
+          password: this.password,
         })
 
         if (res.data.success) {
-          // Store in authStore
+          const auth = useAuthStore()
           auth.login(res.data.user, res.data.token)
-          router.push('/home') // navigate to home page
+          this.$q.notify({
+            type: 'positive',
+            message: `Welcome, ${res.data.user.name}!`,
+          })
+          this.$router.push('/home')
         } else {
-          error.value = res.data.message
+          this.$q.notify({
+            type: 'negative',
+            message: res.data.message || 'Login failed',
+          })
         }
       } catch (err) {
-        error.value = err.response?.data?.message || err.message
+        this.$q.notify({
+          type: 'negative',
+          message: err.response?.data?.message || err.message || 'Network error',
+        })
       } finally {
-        loading.value = false
+        this.loading = false
       }
-    }
-
-    return { userId, password, error, loading, handleLogin }
+    },
   },
 }
 </script>
