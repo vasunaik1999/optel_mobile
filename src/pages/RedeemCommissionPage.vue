@@ -83,14 +83,6 @@
                   </div>
                 </template>
               </q-input>
-
-              <!-- Equivalent Amount Display -->
-              <div v-if="pointsToRedeem > 0" class="equivalent-display">
-                <!-- <q-icon name="currency_rupee" size="16px" color="positive" /> -->
-                <!-- <span class="text-positive text-weight-bold">
-                  ≈ ₹{{ (pointsToRedeem * 0.1).toFixed(2) }}
-                </span> -->
-              </div>
             </div>
 
             <!-- Progress Bar -->
@@ -150,7 +142,7 @@
               unelevated
               rounded
               no-caps
-              :class="['full-width', 'redeem-btn', redeemButtonClass]"
+              :class="['redeem-btn', redeemButtonClass]"
               size="lg"
               @click="handleRedeem"
               :loading="loading"
@@ -260,7 +252,7 @@
                 <div class="style-preview shimmer-gold-preview"></div>
                 <div class="q-ml-sm">
                   <div class="text-caption text-weight-medium">Golden Shimmer</div>
-                  <div class="text-caption text-grey-6">Clear & Low Humidity</div>
+                  <div class="text-caption text-grey-6">Sunny & Low Humidity (&lt;60%)</div>
                 </div>
               </div>
 
@@ -271,7 +263,7 @@
                 <div class="style-preview pulse-grey-preview"></div>
                 <div class="q-ml-sm">
                   <div class="text-caption text-weight-medium">Rainy Pulse</div>
-                  <div class="text-caption text-grey-6">Rain or High Humidity</div>
+                  <div class="text-caption text-grey-6">Rain or High Humidity (&gt;80%)</div>
                 </div>
               </div>
 
@@ -454,11 +446,16 @@ export default {
     },
 
     updateButtonStyle() {
-      if (this.weatherCondition === 'Clear' && this.humidity < 60) {
+      // Clear weather (Sunny) AND humidity < 60% → Golden shimmer
+      if (this.weatherCondition === 'Sunny' && this.humidity < 60) {
         this.redeemButtonClass = 'shimmer-gold'
-      } else if (this.weatherCondition === 'Rain' || this.humidity > 80) {
+      }
+      // Rain OR humidity > 80% → Grey pulse
+      else if (this.weatherCondition === 'Rain' || this.humidity > 80) {
         this.redeemButtonClass = 'pulse-grey'
-      } else {
+      }
+      // All other conditions → Static purple
+      else {
         this.redeemButtonClass = 'static-purple'
       }
     },
@@ -720,17 +717,6 @@ export default {
   box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* Quick Amounts */
 .quick-amounts {
   display: flex;
@@ -769,20 +755,25 @@ export default {
 /* Redeem Button */
 .redeem-button-wrapper {
   position: relative;
+  width: 100%;
 }
 
 .redeem-btn {
+  width: 100%;
   height: 72px;
   font-size: 18px;
   font-weight: 700;
   transition: all 0.3s ease;
   overflow: hidden;
+  position: relative;
 }
 
 .button-content {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 .button-label {
@@ -809,9 +800,12 @@ export default {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   color: #666;
   font-weight: 600;
+  z-index: 10;
 }
 
-/* Button Animations - Enhanced */
+/* Button Animations - FIXED AND COMPLETE */
+
+/* Golden Shimmer - Sunny & Low Humidity (<60%) */
 .shimmer-gold {
   background: linear-gradient(
     90deg,
@@ -822,16 +816,63 @@ export default {
     #ffd700 100%
   ) !important;
   background-size: 200% 100% !important;
-  animation: shimmer 2s infinite linear;
+  animation: shimmer 2s infinite linear !important;
   color: #333 !important;
   box-shadow:
     0 8px 24px rgba(255, 215, 0, 0.6),
     0 0 40px rgba(255, 215, 0, 0.3) !important;
 }
 
+.shimmer-gold:hover:not(:disabled) {
+  box-shadow:
+    0 12px 32px rgba(255, 215, 0, 0.7),
+    0 0 50px rgba(255, 215, 0, 0.4) !important;
+  transform: translateY(-2px);
+}
+
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Grey Pulse - Rain or High Humidity (>80%) */
+.pulse-grey {
+  background: linear-gradient(135deg, #555555 0%, #333333 100%) !important;
+  animation:
+    pulseGrey 2s infinite ease-in-out,
+    ripple 3s infinite !important;
+  color: white !important;
+  box-shadow: 0 8px 24px rgba(85, 85, 85, 0.6) !important;
+}
+
+.pulse-grey:hover:not(:disabled) {
+  box-shadow: 0 12px 32px rgba(85, 85, 85, 0.7) !important;
+}
+
+@keyframes pulseGrey {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes ripple {
+  0% {
+    box-shadow:
+      0 8px 24px rgba(85, 85, 85, 0.6),
+      0 0 0 0 rgba(85, 85, 85, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 8px 24px rgba(85, 85, 85, 0.6),
+      0 0 0 20px rgba(85, 85, 85, 0);
   }
   100% {
     box-shadow:
@@ -840,6 +881,7 @@ export default {
   }
 }
 
+/* Static Purple - All Other Conditions */
 .static-purple {
   background: linear-gradient(135deg, #8a2be2 0%, #9b59b6 100%) !important;
   color: white !important;
@@ -848,6 +890,7 @@ export default {
 
 .static-purple:hover:not(:disabled) {
   box-shadow: 0 12px 32px rgba(138, 43, 226, 0.6) !important;
+  transform: translateY(-2px);
 }
 
 /* Message Banner */
@@ -966,8 +1009,8 @@ export default {
 }
 
 .pulse-grey-preview {
-  background-color: #555;
-  animation: pulse 2s infinite;
+  background: linear-gradient(135deg, #555555 0%, #333333 100%);
+  animation: pulseGrey 2s infinite;
 }
 
 .static-purple-preview {
@@ -984,37 +1027,6 @@ export default {
 .transaction-item:hover {
   background: #f8f9fa;
 }
-
-/* {
-    background-position: 200% 0;
-  }
-}
-
-.pulse-grey {
-  background: linear-gradient(135deg, #555 0%, #333 100%) !important;
-  animation: pulse 2s infinite, ripple 3s infinite;
-  color: white !important;
-  box-shadow: 0 8px 24px rgba(85, 85, 85, 0.6) !important;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.8;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes ripple {
-  0% {
-    box-shadow: 0 8px 24px rgba(85, 85, 85, 0.6), 0 0 0 0 rgba(85, 85, 85, 0.4);
-  }
-  50% {
-    box-shadow: 0 8px 24px rgba(85, 85, 85, 0.6), 0 0 0 20px rgba(85, 85, 85, 0);
-  }
-  100%
- */
 
 /* Animations */
 @keyframes fadeInDown {
