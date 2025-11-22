@@ -34,7 +34,6 @@
               placeholder="https://api.example.com"
               class="custom-input"
             >
-              <!-- :rules="[(val) => !!val || 'Backend URL is required']" -->
               <template v-slot:prepend>
                 <q-icon name="link" color="primary" />
               </template>
@@ -45,9 +44,18 @@
                 />
               </template>
             </q-input>
-            <div class="input-hint">
+
+            <!-- Fixed height hint/error container -->
+            <div
+              class="input-hint"
+              :class="{ 'text-negative': baseUrl && !isValidUrl(baseUrl) }"
+              style="min-height: 20px"
+            >
               <q-icon name="info" size="14px" class="q-mr-xs" />
-              Enter the complete URL including https://
+              <span v-if="!baseUrl || isValidUrl(baseUrl)">
+                Enter the complete URL including https://
+              </span>
+              <span v-else>Invalid URL format</span>
             </div>
           </div>
 
