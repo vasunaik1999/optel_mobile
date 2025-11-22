@@ -21,13 +21,22 @@
               outlined
               placeholder="Enter product serial number"
               class="custom-input"
-              :disable="verifiedSerial"
+              :readonly="verifiedSerial"
             >
+              <!-- QR scanner icon -->
               <template v-slot:prepend>
                 <q-icon name="qr_code_scanner" color="primary" />
               </template>
-              <template v-slot:append v-if="serialNumber && !verifiedSerial">
-                <q-icon name="close" class="cursor-pointer" color="grey-6" @click="clearInput" />
+
+              <!-- Show cross button only when verified -->
+              <template v-slot:append>
+                <q-icon
+                  v-if="verifiedSerial"
+                  name="close"
+                  class="cursor-pointer"
+                  color="grey-6"
+                  @click="clearInput"
+                />
               </template>
             </q-input>
           </div>
@@ -74,7 +83,7 @@
               label="Mark as Bought"
               icon="shopping_cart_checkout"
               class="full-width mark-bought-btn"
-              @click="markAsBought"
+              @click="showConfirmDialog = true"
               :disable="!verifiedSerial"
             />
           </div>
@@ -159,6 +168,13 @@
           </ul>
         </q-card-section>
       </q-card>
+
+      <!-- Confirm Dialog -->
+      <confirm-dialog
+        v-model="showConfirmDialog"
+        @confirmed="markAsBought"
+        @cancelled="onDialogCancelled"
+      />
     </div>
   </q-page>
 </template>
@@ -167,9 +183,11 @@
 import { LocalStorage, Notify } from 'quasar'
 import axios from 'axios'
 import { useAuthStore } from 'src/stores/authStore'
+import ConfirmDialog from 'components/ConfirmDialog.vue'
 
 export default {
   name: 'MarkBoughtPage',
+  components: { ConfirmDialog },
 
   setup() {
     const authStore = useAuthStore()
@@ -185,6 +203,7 @@ export default {
       loading: false,
       lastConsumedSerial: null,
       consumedSerials: LocalStorage.getItem('consumedSerials') || [],
+      showConfirmDialog: false,
     }
   },
 
@@ -220,6 +239,10 @@ export default {
       this.message = ''
       this.messageType = ''
       this.lastConsumedSerial = null
+    },
+
+    onDialogCancelled() {
+      this.showConfirmDialog = false
     },
 
     async verifySerial() {
@@ -272,10 +295,7 @@ export default {
       try {
         const res = await axios.post(
           `${this.authStore.baseUrl}/verify/consume`,
-          {
-            serialNumber: this.serialNumber,
-            userId: this.authStore.user.id,
-          },
+          { serialNumber: this.serialNumber, userId: this.authStore.user.id },
           { headers: { Authorization: `Bearer ${this.authStore.token}` } },
         )
 
