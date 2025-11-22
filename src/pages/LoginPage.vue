@@ -52,7 +52,7 @@
                 :rules="[(val) => !!val || 'Password is required']"
               >
                 <template v-slot:prepend>
-                  <q-icon name="lock" color="grey-6" />
+                  <q-icon name="lock" color="grey-6" size="20px" />
                 </template>
                 <template v-slot:append>
                   <q-icon
@@ -158,8 +158,8 @@ export default {
 
   data() {
     return {
-      userId: '',
-      password: '',
+      userId: '7',
+      password: 'password',
       showPassword: false,
       rememberMe: false,
       loading: false,
