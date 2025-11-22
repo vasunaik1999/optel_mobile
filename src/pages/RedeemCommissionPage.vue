@@ -116,25 +116,30 @@
                 unelevated
                 rounded
                 no-caps
-                :label="`${amount.toLocaleString()}`"
                 class="quick-btn"
                 :class="{ 'quick-btn-active': pointsToRedeem === amount }"
                 @click="pointsToRedeem = amount"
                 :disable="amount > pendingPoints"
               >
-                <q-icon name="bolt" size="14px" class="q-mr-xs" />
+                <div class="flex items-center no-wrap">
+                  <q-icon name="bolt" size="14px" class="q-mr-xs" />
+                  <span>{{ amount.toLocaleString() }}</span>
+                </div>
               </q-btn>
+
               <q-btn
                 unelevated
                 rounded
                 no-caps
-                label="All"
                 class="quick-btn quick-btn-max"
                 :class="{ 'quick-btn-active': pointsToRedeem === pendingPoints }"
                 @click="pointsToRedeem = pendingPoints"
                 :disable="pendingPoints <= 0"
               >
-                <q-icon name="all_inclusive" size="16px" class="q-mr-xs" />
+                <div class="flex items-center no-wrap">
+                  <q-icon name="all_inclusive" size="16px" class="q-mr-xs" />
+                  <span>All</span>
+                </div>
               </q-btn>
             </div>
           </div>
@@ -343,7 +348,7 @@ export default {
       isRealWeather: false,
       lat: null,
       lon: null,
-      quickAmounts: [100, 500, 1000, 2500, 5000],
+      quickAmounts: [10, 50, 100, 250, 500],
     }
   },
 
