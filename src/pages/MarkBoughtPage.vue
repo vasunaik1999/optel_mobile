@@ -57,6 +57,14 @@ export default {
       consumedSerials: LocalStorage.getItem('consumedSerials') || [],
     }
   },
+  async mounted() {
+    // Check if a serial is passed via query param
+    const serialFromScan = this.$route.query.serial
+    if (serialFromScan) {
+      this.serialNumber = serialFromScan
+      await this.verifySerial() // automatically verify
+    }
+  },
   methods: {
     async verifySerial() {
       if (!this.serialNumber) {
@@ -84,7 +92,7 @@ export default {
 
         if (res.data.exists) {
           this.verifiedSerial = true
-          this.message = 'Serial verified successfully!'
+          this.message = `Serial verified successfully! MRP: ${res.data.mrp ?? 'N/A'}`
           this.messageType = 'success'
         } else {
           this.verifiedSerial = false
