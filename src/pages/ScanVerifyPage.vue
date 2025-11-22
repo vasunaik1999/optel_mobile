@@ -1,82 +1,93 @@
 <template>
-  <q-page class="flex flex-center column">
-    <div class="text-h4">QR Code Scanner</div>
-    <q-btn v-if="!isScanning" label="Start Scanning" color="primary" @click="startContinuousScan" />
-    <q-btn v-if="isScanning" label="Stop Scanning" color="negative" @click="stopScanning" />
-    <div v-if="scannedDataList.length > 0" class="q-mt-md">
-      <p>Scanned QR Codes:</p>
-      <ul>
-        <li v-for="(data, index) in scannedDataList" :key="index">{{ data }}</li>
-      </ul>
+  <q-page class="q-pa-md flex flex-center column">
+    <q-btn label="Scan QR" color="primary" @click="startScan" class="q-mb-md" />
+
+    <div v-if="loading" class="q-mt-md">
+      <q-spinner />
+      <div class="text-grey q-mt-sm">Scanning...</div>
     </div>
-    <div v-if="errorMessage" class="q-mt-md text-negative">Error: {{ errorMessage }}</div>
+
+    <div v-if="scannedValue && !loading" class="q-mt-lg">
+      ✅ Scanned QR Code: <strong>{{ scannedValue }}</strong>
+    </div>
+
+    <div v-if="logMessages.length" class="q-mt-md q-pa-sm bg-grey-2">
+      <strong>Logs:</strong>
+      <div v-for="(msg, i) in logMessages" :key="i">{{ msg }}</div>
+    </div>
   </q-page>
 </template>
 
 <script>
-import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning'
+import { Capacitor } from '@capacitor/core'
+import {
+  CapacitorBarcodeScanner as BarcodeScanner,
+  CapacitorBarcodeScannerTypeHint,
+  CapacitorBarcodeScannerCameraDirection,
+  CapacitorBarcodeScannerScanOrientation,
+} from '@capacitor/barcode-scanner' // plugin exports `CapacitorBarcodeScanner` and enums
 
 export default {
   name: 'ScanVerifyPage',
+
   data() {
     return {
-      scannedDataList: [], // Array to store multiple scans
-      errorMessage: '',
-      isScanning: false,
-      scanLoop: null, // To control the loop
+      scannedValue: '',
+      loading: false,
+      logMessages: [],
     }
   },
+
   methods: {
-    async startContinuousScan() {
+    log(msg) {
+      console.log(msg)
+      this.logMessages.push(msg)
+    },
+
+    async startScan() {
+      this.log('--- startScan called ---')
+      this.loading = true
+      this.scannedValue = ''
+
       try {
-        // Request camera permissions
-        const permission = await BarcodeScanner.requestPermissions()
-        if (permission.camera !== 'granted') {
-          this.errorMessage = 'Camera permission denied.'
+        // Request permission
+        // On native platforms the native implementation should handle permissions.
+        // For web the browser will prompt for camera access when the scanner starts.
+        if (Capacitor.getPlatform() === 'ios' || Capacitor.getPlatform() === 'android') {
+          this.log('Native platform detected; native plugin will handle camera permissions.')
+        }
+
+        // Scan options
+        const options = {
+          // Use the exported enums/numeric hints — web implementation expects these values
+          hint: CapacitorBarcodeScannerTypeHint.ALL, // allow all formats for best detection
+          scanInstructions: 'Place QR inside frame',
+          scanButton: false,
+          scanText: 'Scanning...',
+          cameraDirection: CapacitorBarcodeScannerCameraDirection.BACK,
+          scanOrientation: CapacitorBarcodeScannerScanOrientation.PORTRAIT,
+          android: { scanningLibrary: 'ZXING' },
+          web: { showCameraSelection: true, scannerFPS: 10 },
+        }
+
+        // Start scanning
+        const result = await BarcodeScanner.scanBarcode(options)
+        this.log('Scan result: ' + JSON.stringify(result))
+
+        if (!result || !result.ScanResult) {
+          this.log('No QR code detected')
+          this.loading = false
           return
         }
 
-        this.isScanning = true
-        this.errorMessage = ''
-        this.scannedDataList = [] // Reset list
-
-        // Start continuous scanning loop
-        this.scanLoop = setInterval(async () => {
-          try {
-            const result = await BarcodeScanner.startScan()
-            if (result && result.barcodes && result.barcodes.length > 0) {
-              this.scannedDataList.push(result.barcodes[0].rawValue)
-            }
-          } catch (error) {
-            // Handle individual scan errors (e.g., cancel)
-            if (error.message.includes('cancel') || error.message.includes('back')) {
-              this.stopScanning() // Stop on cancel
-            } else {
-              console.error('Scan error:', error)
-            }
-          }
-        }, 1000) // Scan every 1 second; adjust as needed
-      } catch (error) {
-        console.error('Barcode scan error:', error)
-        this.errorMessage = `Scanning failed: ${error.message || 'Unknown error'}`
-        this.isScanning = false
+        this.scannedValue = result.ScanResult
+        this.log('Scanned value: ' + this.scannedValue)
+      } catch (err) {
+        this.log('Scan failed: ' + err)
+      } finally {
+        this.loading = false
       }
     },
-    stopScanning() {
-      if (this.scanLoop) {
-        clearInterval(this.scanLoop)
-        this.scanLoop = null
-      }
-      this.isScanning = false
-    },
-  },
-  beforeUnmount() {
-    // Cleanup on component destroy
-    this.stopScanning()
   },
 }
 </script>
-
-<style scoped>
-/* Add any custom styles if needed */
-</style>
