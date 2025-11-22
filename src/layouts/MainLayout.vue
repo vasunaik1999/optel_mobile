@@ -117,10 +117,11 @@
       <q-separator />
 
       <!-- Navigation Menu -->
+      <!-- Quick Action Cards in Drawer -->
       <q-scroll-area class="fit" style="height: calc(100% - 270px) !important">
         <q-list padding class="q-pa-md">
+          <!-- Existing navigation items -->
           <q-item
-            v-if="authStore.isAuthenticated"
             clickable
             v-ripple
             to="/home"
@@ -152,6 +153,43 @@
               <q-item-label class="text-weight-medium">Settings</q-item-label>
               <q-item-label caption lines="1" class="active-link-caption"
                 >Configure preferences</q-item-label
+              >
+            </q-item-section>
+          </q-item>
+
+          <!-- Action Cards as Drawer Items -->
+          <q-item
+            clickable
+            v-ripple
+            to="/mark-bought"
+            active-class="active-link"
+            class="rounded-borders q-mb-xs"
+          >
+            <q-item-section avatar>
+              <q-icon name="shopping_cart" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-weight-medium">Mark as Bought</q-item-label>
+              <q-item-label caption lines="1" class="active-link-caption"
+                >Record your purchases</q-item-label
+              >
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            v-ripple
+            to="/redeem"
+            active-class="active-link"
+            class="rounded-borders q-mb-xs"
+          >
+            <q-item-section avatar>
+              <q-icon name="redeem" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-weight-medium">Redeem Points</q-item-label>
+              <q-item-label caption lines="1" class="active-link-caption"
+                >Use your rewards</q-item-label
               >
             </q-item-section>
           </q-item>
