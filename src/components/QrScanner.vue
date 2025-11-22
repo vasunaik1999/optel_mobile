@@ -12,28 +12,18 @@
 </template>
 
 <script>
-// import { Capacitor } from '@capacitor/core'
 import {
   CapacitorBarcodeScanner as BarcodeScanner,
   CapacitorBarcodeScannerCameraDirection,
   CapacitorBarcodeScannerScanOrientation,
   CapacitorBarcodeScannerTypeHint,
 } from '@capacitor/barcode-scanner'
-import { LocalStorage, Notify } from 'quasar'
-import axios from 'axios'
-import { useAuthStore } from 'src/stores/authStore'
+import { Notify } from 'quasar'
 
 export default {
-  // name: 'QrScanner',
-  data() {
-    return {
-      authStore: useAuthStore(),
-      consumedSerials: LocalStorage.getItem('consumedSerials') || [],
-    }
-  },
+  name: 'QrScanner',
   methods: {
     async startScan() {
-      let scannedValue = ''
       try {
         const options = {
           hint: CapacitorBarcodeScannerTypeHint.ALL,
@@ -47,7 +37,7 @@ export default {
         }
 
         const result = await BarcodeScanner.scanBarcode(options)
-        scannedValue = result?.ScanResult || ''
+        const scannedValue = result?.ScanResult || ''
 
         if (!scannedValue) {
           Notify.create({ type: 'negative', message: 'No QR code detected' })
@@ -59,31 +49,11 @@ export default {
           return
         }
 
-        if (this.consumedSerials.includes(scannedValue)) {
-          Notify.create({ type: 'negative', message: 'Serial already marked as bought locally' })
-          return
-        }
-
-        // Call backend API to mark as bought
-        const res = await axios.post(
-          `${this.authStore.baseUrl}/verify/consume`,
-          { serialNumber: scannedValue, userId: this.authStore.user.id },
-          { headers: { Authorization: `Bearer ${this.authStore.token}` } },
-        )
-
-        if (res.data.success) {
-          this.consumedSerials.push(scannedValue)
-          LocalStorage.set('consumedSerials', this.consumedSerials)
-          Notify.create({ type: 'positive', message: 'Marked as bought successfully!' })
-        } else {
-          Notify.create({
-            type: 'negative',
-            message: res.data.message || 'Failed to mark as bought',
-          })
-        }
+        // Redirect to mark-bought page with query param
+        this.$router.push({ path: '/mark-bought', query: { serial: scannedValue } })
       } catch (err) {
         console.error(err)
-        Notify.create({ type: 'negative', message: 'Error scanning or marking as bought' })
+        Notify.create({ type: 'negative', message: 'Error scanning QR code' })
       }
     },
   },
