@@ -9,12 +9,6 @@
 
         <!-- Navigation Buttons -->
         <q-btn
-          label="Verification Scanner"
-          color="primary"
-          class="q-mb-sm full-width"
-          @click="goTo('scanner')"
-        />
-        <q-btn
           label="Mark as Bought"
           color="secondary"
           class="q-mb-sm full-width"
@@ -49,9 +43,6 @@ export default {
   methods: {
     goTo(page) {
       switch (page) {
-        case 'scanner':
-          this.$router.push('/scan-verify')
-          break
         case 'markBought':
           this.$router.push('/mark-bought')
           break
