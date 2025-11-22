@@ -4,7 +4,9 @@
       <q-toolbar>
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
-        <q-toolbar-title class="text-weight-bold"> Painter </q-toolbar-title>
+        <q-toolbar-title class="text-weight-bold">
+          <q-icon name="palette" /> Painter
+        </q-toolbar-title>
 
         <q-space />
 
