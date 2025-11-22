@@ -37,6 +37,18 @@
         </q-banner>
       </q-card-section>
     </q-card>
+
+    <!-- Last consumed serial info -->
+    <q-card v-if="lastConsumedSerial" class="q-mt-md" style="width: 400px">
+      <q-card-section>
+        <div class="text-h6 q-mb-sm">Consumed Serial</div>
+        <div><strong>Serial Number:</strong> {{ lastConsumedSerial.serialNumber }}</div>
+        <div><strong>MRP:</strong> {{ lastConsumedSerial.mrp ?? 'N/A' }}</div>
+        <div v-if="lastConsumedSerial.commissionAmount !== undefined">
+          <strong>Commission Earned:</strong> {{ lastConsumedSerial.commissionAmount }}
+        </div>
+      </q-card-section>
+    </q-card>
   </q-page>
 </template>
 
@@ -54,13 +66,13 @@ export default {
       message: '',
       messageType: '',
       loading: false,
+      lastConsumedSerial: null,
       authStore: useAuthStore(),
       consumedSerials: LocalStorage.getItem('consumedSerials') || [],
     }
   },
   watch: {
     serialNumber(newVal, oldVal) {
-      // Reset verification state if input changes
       if (newVal !== oldVal) {
         this.verifiedSerial = false
         this.message = ''
@@ -69,11 +81,10 @@ export default {
     },
   },
   async mounted() {
-    // Check if a serial is passed via query param
     const serialFromScan = this.$route.query.serial
     if (serialFromScan) {
       this.serialNumber = serialFromScan
-      await this.verifySerial() // automatically verify
+      await this.verifySerial()
     }
   },
   methods: {
@@ -83,7 +94,6 @@ export default {
         return
       }
 
-      // Check if already consumed locally
       if (this.consumedSerials.includes(this.serialNumber)) {
         this.message = 'Serial already marked as bought locally'
         this.messageType = 'negative'
@@ -95,9 +105,7 @@ export default {
         const res = await axios.get(
           `${this.authStore.baseUrl}/verify/serial-numbers/${this.serialNumber}`,
           {
-            headers: {
-              Authorization: `Bearer ${this.authStore.token}`,
-            },
+            headers: { Authorization: `Bearer ${this.authStore.token}` },
           },
         )
 
@@ -128,17 +136,20 @@ export default {
             serialNumber: this.serialNumber,
             userId: this.authStore.user.id,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${this.authStore.token}`,
-            },
-          },
+          { headers: { Authorization: `Bearer ${this.authStore.token}` } },
         )
 
         if (res.data.success) {
           // Store locally
           this.consumedSerials.push(this.serialNumber)
           LocalStorage.set('consumedSerials', this.consumedSerials)
+
+          // Save last consumed info for display
+          this.lastConsumedSerial = {
+            serialNumber: this.serialNumber,
+            mrp: res.data.mrp ?? 'N/A',
+            commissionAmount: res.data.commissionEarned,
+          }
 
           this.message = 'Marked as bought successfully!'
           this.messageType = 'success'
