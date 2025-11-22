@@ -1,5 +1,8 @@
 <template>
   <q-page padding class="flex flex-center">
+    <!-- Floating QR Scanner -->
+    <QrScanner />
+
     <q-card class="q-pa-md" style="width: 400px">
       <q-card-section>
         <div class="text-h5 q-mb-md">Welcome, {{ authStore.user?.name || 'Painter' }}</div>
@@ -32,13 +35,16 @@
 
 <script>
 import { useAuthStore } from 'src/stores/authStore'
-
+import QrScanner from 'src/components/QrScanner.vue'
 export default {
   name: 'HomePage',
   data() {
     return {
       authStore: useAuthStore(),
     }
+  },
+  components: {
+    QrScanner,
   },
   methods: {
     goTo(page) {
