@@ -70,7 +70,7 @@
                 outlined
                 placeholder="0"
                 class="custom-input"
-                @update:model-value="calculateEquivalent"
+                @update:model-value="limitPoints"
               >
                 <template v-slot:prepend>
                   <q-avatar size="25px" class="bg-primary">
@@ -143,7 +143,6 @@
               rounded
               no-caps
               :class="['redeem-btn', redeemButtonClass]"
-              size="lg"
               @click="handleRedeem"
               :loading="loading"
               :disable="!pointsToRedeem || pointsToRedeem <= 0 || pointsToRedeem > pendingPoints"
@@ -153,7 +152,7 @@
                 <div>
                   <div class="button-label">Redeem Now</div>
                   <div v-if="pointsToRedeem > 0" class="button-sublabel">
-                    ₹{{ (pointsToRedeem * 0.1).toFixed(2) }} to your wallet
+                    ₹{{ pointsToRedeem.toFixed(2) }} from your wallet
                   </div>
                 </div>
               </div>
@@ -371,8 +370,16 @@ export default {
   },
 
   methods: {
-    calculateEquivalent() {
-      // Could add more logic here for different conversion rates
+    limitPoints(value) {
+      // Ensure value is numeric
+      let val = Number(value)
+
+      // Clamp the value between 0 and pendingPoints
+      if (val > this.pendingPoints) val = this.pendingPoints
+      if (val < 0) val = 0
+
+      this.pointsToRedeem = val
+      this.calculateEquivalent() // optional if you have conversion logic
     },
 
     async fetchPending() {
@@ -422,14 +429,14 @@ export default {
         )
 
         if (res.data.success) {
-          this.message = `Successfully redeemed ${res.data.redeemedAmount} points! Amount credited to your wallet.`
+          this.message = `Successfully redeemed ${res.data.redeemedAmount} points!`
           this.success = true
           this.pendingPoints -= this.pointsToRedeem
           this.pointsToRedeem = 0
 
           this.$q.notify({
             type: 'positive',
-            message: `₹${(res.data.redeemedAmount * 0.1).toFixed(2)} credited!`,
+            message: `₹${res.data.redeemedAmount.toFixed(2)} credited!`,
             icon: 'check_circle',
             position: 'top',
             timeout: 3000,
@@ -779,12 +786,14 @@ export default {
 .button-label {
   font-size: 18px;
   font-weight: 700;
+  line-height: 1rem;
 }
 
 .button-sublabel {
   font-size: 12px;
   opacity: 0.9;
-  margin-top: 2px;
+  margin-top: 3px;
+  line-height: 1rem;
 }
 
 .weather-badge {
