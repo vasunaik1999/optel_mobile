@@ -1,1 +1,10 @@
-{"appId":"in.vasunaik.optel.painter.app","appName":"Quasar App","webDir":"www","plugins":{},"server":{"url":"http://192.168.255.73:9500","cleartext":true}}
+{
+  "appId": "in.vasunaik.optel.painter.app",
+  "appName": "Quasar App",
+  "webDir": "www",
+  "plugins": {},
+  "server": {
+    "url": "http://192.168.107.73:9500",
+    "cleartext": true
+  }
+}
