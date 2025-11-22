@@ -15,6 +15,7 @@
             class="q-mb-sm full-width"
             @click="verifySerial"
             :loading="loading"
+            :disable="!serialNumber || loading || verifiedSerial"
           />
           <q-btn
             label="Mark as Bought"
@@ -56,6 +57,16 @@ export default {
       authStore: useAuthStore(),
       consumedSerials: LocalStorage.getItem('consumedSerials') || [],
     }
+  },
+  watch: {
+    serialNumber(newVal, oldVal) {
+      // Reset verification state if input changes
+      if (newVal !== oldVal) {
+        this.verifiedSerial = false
+        this.message = ''
+        this.messageType = ''
+      }
+    },
   },
   async mounted() {
     // Check if a serial is passed via query param
