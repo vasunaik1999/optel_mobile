@@ -29,6 +29,11 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/ScanVerifyPage.vue') }],
   },
+  {
+    path: '/ai-insights',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/PainterInsightsPage.vue') }],
+  },
 
   // Always leave this as last one,
   // but you can also remove it

@@ -71,6 +71,23 @@
           </q-card-section>
         </q-card>
 
+        <q-card flat bordered class="action-card accent-card" @click="goTo('aiInsights')">
+          <q-card-section class="row items-center no-wrap">
+            <div class="col-shrink">
+              <div class="card-icon-wrapper bg-accent">
+                <q-icon name="ai" size="32px" color="white" />
+              </div>
+            </div>
+            <div class="col-grow q-ml-md">
+              <div class="text-h6 text-weight-bold text-grey-9">AI Insights</div>
+              <div class="text-body2 text-grey-6">Insights of current user</div>
+            </div>
+            <div class="col-auto">
+              <q-icon name="chevron_right" size="24px" color="grey-5" />
+            </div>
+          </q-card-section>
+        </q-card>
+
         <q-card flat bordered class="action-card secondary-card" @click="goTo('settings')">
           <q-card-section class="row items-center no-wrap">
             <div class="col-shrink">
@@ -162,6 +179,7 @@ export default {
         markBought: '/mark-bought',
         redeem: '/redeem',
         settings: '/settings',
+        aiInsights: '/ai-insights',
       }
 
       if (routes[page]) {
