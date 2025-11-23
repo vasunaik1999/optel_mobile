@@ -69,7 +69,7 @@
               class="full-width verify-btn q-mb-md"
               @click="verifySerial"
               :loading="loading"
-              :disable="!serialNumber || loading || verifiedSerial"
+              :disable="!serialNumber || loading || verifiedSerial || !validateSerial(serialNumber)"
             >
               <template v-slot:loading>
                 <q-spinner-dots size="24px" />
@@ -210,9 +210,16 @@ export default {
   watch: {
     serialNumber(newVal, oldVal) {
       if (newVal !== oldVal) {
+        this.serialNumber = newVal.toUpperCase()
+
         this.verifiedSerial = false
         this.message = ''
         this.messageType = ''
+
+        if (this.serialNumber && !this.validateSerial(this.serialNumber)) {
+          this.message = 'Serial must be 3 letters followed by 7 digits (e.g., SNO0000001)'
+          this.messageType = 'negative'
+        }
       }
     },
   },
@@ -226,6 +233,11 @@ export default {
   },
 
   methods: {
+    validateSerial(serial) {
+      const regex = /^[A-Z]{3}\d{7}$/
+      return regex.test(serial)
+    },
+
     clearInput() {
       this.serialNumber = ''
       this.verifiedSerial = false
@@ -250,6 +262,15 @@ export default {
         Notify.create({
           type: 'negative',
           message: 'Please enter a serial number',
+          position: 'top',
+        })
+        return
+      }
+
+      if (!this.validateSerial(this.serialNumber)) {
+        Notify.create({
+          type: 'negative',
+          message: 'Invalid serial format. Use 3 letters + 7 numbers (SNO0000001)',
           position: 'top',
         })
         return
