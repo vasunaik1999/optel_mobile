@@ -193,6 +193,24 @@
               >
             </q-item-section>
           </q-item>
+
+          <q-item
+            clickable
+            v-ripple
+            to="/ai-insights"
+            active-class="active-link"
+            class="rounded-borders q-mb-xs"
+          >
+            <q-item-section avatar>
+              <q-icon name="psychology" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-weight-medium">AI Insights</q-item-label>
+              <q-item-label caption lines="1" class="active-link-caption"
+                >Insights of a painter</q-item-label
+              >
+            </q-item-section>
+          </q-item>
         </q-list>
       </q-scroll-area>
 

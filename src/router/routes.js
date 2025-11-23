@@ -6,6 +6,7 @@ const routes = [
   },
   {
     path: '/home',
+    meta: { requiresAuth: true },
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/HomePage.vue') }],
   },
@@ -16,21 +17,25 @@ const routes = [
   },
   {
     path: '/mark-bought',
+    meta: { requiresAuth: true },
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/MarkBoughtPage.vue') }],
   },
   {
     path: '/redeem',
+    meta: { requiresAuth: true },
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/RedeemCommissionPage.vue') }],
   },
   {
     path: '/scan-verify',
+    meta: { requiresAuth: true },
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/ScanVerifyPage.vue') }],
   },
   {
     path: '/ai-insights',
+    meta: { requiresAuth: true },
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/PainterInsightsPage.vue') }],
   },

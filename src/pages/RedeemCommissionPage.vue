@@ -384,6 +384,8 @@ export default {
 
     async fetchPending() {
       try {
+        this.$q.loading.show()
+
         const res = await axios.get(
           `${this.authStore.baseUrl}/verify/users/${this.authStore.user.id}/commission/pending`,
           { headers: { Authorization: `Bearer ${this.authStore.token}` } },
@@ -395,6 +397,8 @@ export default {
           message: err.response?.data?.message || err.message,
           position: 'top',
         })
+      } finally {
+        this.$q.loading.hide()
       }
     },
 
