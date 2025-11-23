@@ -120,12 +120,12 @@
                 </div>
               </div>
 
-              <div class="detail-item">
+              <!-- <div class="detail-item">
                 <div class="detail-label">Product MRP</div>
                 <div class="detail-value text-weight-bold">
-                  <span class="text-grey-8"> ₹{{ lastConsumedSerial.mrp ?? 'N/A' }} </span>
+                  <span class="text-grey-8"> ₹500 </span>
                 </div>
-              </div>
+              </div> -->
 
               <div
                 v-if="lastConsumedSerial.commissionAmount !== undefined"

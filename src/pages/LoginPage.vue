@@ -40,7 +40,7 @@
             </div>
 
             <!-- Password Input -->
-            <div class="q-mt-sm">
+            <div>
               <label class="input-label">Password</label>
               <q-input
                 v-model="password"
