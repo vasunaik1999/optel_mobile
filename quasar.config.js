@@ -46,7 +46,11 @@ export default defineConfig((/* ctx */) => {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+      env: {
+        VITE_BASE_URL: process.env.VITE_BASE_URL || 'https://optel-backend.onrender.com',
+        // VITE_BASE_URL: 'http://192.168.5.73:3000',
+        // API_KEY: process.env.VITE_API_KEY,
+      },
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,

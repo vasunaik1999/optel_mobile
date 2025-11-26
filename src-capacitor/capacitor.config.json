@@ -4,7 +4,7 @@
   "webDir": "www",
   "plugins": {},
   "server": {
-    "url": "http://192.168.1.7:9500",
+    "url": "http://192.168.5.73:9500",
     "cleartext": true
   }
 }

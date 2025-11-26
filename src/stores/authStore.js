@@ -6,8 +6,9 @@ export const useAuthStore = defineStore('authStore', {
     user: null,
     token: null,
     isAuthenticated: false,
-    baseUrl: LocalStorage.getItem('baseUrl') || 'http://192.168.1.7:3000',
     apiKey: LocalStorage.getItem('apiKey') || '',
+    baseUrl: LocalStorage.getItem('baseUrl') || import.meta.env.VITE_BASE_URL,
+    viteTest: import.meta.env.VITE_TEST || 'defaultTestValue',
   }),
   getters: {
     isLoggedIn: (state) => !!state.token,
